@@ -1,0 +1,34 @@
+os: linux
+language: generic
+
+services:
+  - docker
+  - mysql
+  - postgresql
+
+install:
+  - docker build -t micrate .
+
+script:
+  - docker run --rm --volume $PWD/test:/db --env DATABASE_URL micrate up
+  - docker run --rm --volume $PWD/test:/db --env DATABASE_URL micrate status
+  - docker run --rm --volume $PWD/test:/db --env DATABASE_URL micrate down
+
+after_success:
+  - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+  - docker tag micrate $DOCKER_USERNAME/micrate:${TRAVIS_BRANCH/master/latest}
+  - docker push $DOCKER_USERNAME/micrate:${TRAVIS_BRANCH/master/latest}
+
+jobs:
+  include:
+    - name: mysql
+      if: branch IN (master, mysql)
+      before_script: mysql -e 'CREATE DATABASE micrate_test;'
+      env: DATABASE_URL=mysql://travis@127.0.0.1/micrate_test
+    - name: postgresql
+      if: branch IN (master, postgresql)
+      before_script: psql -c 'create database micrate_test;' -U postgres
+      env: DATABASE_URL=postgresql://postgres@127.0.0.1/micrate_test
+    - name: sqlite3
+      if: branch IN (master, sqlite)
+      env: DATABASE_URL=sqlite3://./db/test.sqlite3
