@@ -1,0 +1,10 @@
+version: "3"
+
+services:
+  sut:
+    build: .
+    command: up
+    environment:
+      DATABASE_URL: sqlite3:db/micrate_test.sqlite3
+    volumes:
+      - ./db:/db
