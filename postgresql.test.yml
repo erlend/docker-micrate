@@ -1,0 +1,18 @@
+version: "3"
+
+services:
+  sut:
+    build: .
+    command: up
+    depends_on:
+      - postgresql
+    environment:
+      DATABASE_URL: postgresql://postgres:password@postgresql:5432/micrate_test
+    volumes:
+      - ./db:/db:ro
+
+  postgresql:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: micrate_test
